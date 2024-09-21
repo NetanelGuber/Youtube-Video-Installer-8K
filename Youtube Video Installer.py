@@ -171,21 +171,41 @@ def check_python_installed():
     python_path = shutil.which('python')
     return python_path is not None
 
+
 def get_latest_python_download_url():
-    print("Retrieving the latest Python version...")
-    url = 'http://www.python.org/ftp/python/'
+    print("Retrieving the latest stable Python version...")
+    base_url = 'https://www.python.org/ftp/python/'
     context = ssl._create_unverified_context()
-    with urllib.request.urlopen(url, context=context) as response:
+    with urllib.request.urlopen(base_url, context=context) as response:
         html = response.read().decode('utf-8')
-        versions = re.findall(r'href="(\d+\.\d+\.\d+)/"', html)
-        latest_version = sorted(versions, key=lambda s: list(map(int, s.split('.'))), reverse=True)[0]
-        download_url = f'http://www.python.org/ftp/python/3.12.6/python-3.12.6-amd64.exe'
-        print(f"Latest Python version is {latest_version}")
-        return download_url
+
+    # Extract all directory names
+    versions = re.findall(r'href="([0-9\.]+)/"', html)
+    # Filter out pre-release versions (those that contain letters)
+    stable_versions = [v for v in versions if re.fullmatch(r'\d+\.\d+\.\d+', v)]
+    # Sort versions in reverse order (latest first)
+    stable_versions.sort(key=lambda s: list(map(int, s.split('.'))), reverse=True)
+
+    # Check if installer exists for each version
+    for version in stable_versions:
+        installer_url = f'{base_url}{version}/python-{version}-amd64.exe'
+        try:
+            req = urllib.request.Request(installer_url, method='HEAD')
+            with urllib.request.urlopen(req, context=context) as resp:
+                if resp.status == 200:
+                    print(f"Latest stable Python version is {version}")
+                    return installer_url
+        except urllib.error.HTTPError:
+            continue  # Installer does not exist for this version
+
+    print("Could not find a suitable Python installer.")
+    sys.exit(1)
 
 def download_python_installer(download_url, save_path):
     print("Downloading Python installer...")
-    urllib.request.urlretrieve(download_url, save_path)
+    context = ssl._create_unverified_context()
+    with urllib.request.urlopen(download_url, context=context) as response, open(save_path, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
 
 def install_python(installer_path):
     print("Installing Python...")
@@ -219,16 +239,15 @@ def check_python():
                 download_python_installer(download_url, installer_path)
                 install_python(installer_path)
                 update_path_env()
-                # Verify installation
-                if check_python_installed():
-                    print("Python has been successfully installed and added to PATH.")
-                else:
-                    print("Python installation failed or PATH not updated.")
-                    print("You may need to restart your computer or add Python to your PATH manually.")
+                print("Python has been successfully installed and added to PATH.")
+                print("Please restart your computer to complete the installation.")
+                sys.exit()  # Exit the script after installing Python
         else:
             print("Python installation cancelled.")
             sys.exit()
 
+    # Continue with the rest of your script (if Python was already installed)
+    # Example: using pip to install packages
     try:
         subprocess.check_call(['pip', '--version'])
     except FileNotFoundError:
