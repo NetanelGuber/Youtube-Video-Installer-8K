@@ -1,5 +1,161 @@
 import os
-import yt_dlp
+import sys
+import subprocess
+import ctypes
+import urllib.request
+import shutil
+import zipfile
+import winreg as reg
+
+try:
+    import yt_dlp
+except ImportError:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'yt-dlp'])
+    import yt_dlp
+
+def is_ffmpeg_installed():
+    """Check if ffmpeg is installed by trying to run 'ffmpeg -version'."""
+    try:
+        subprocess.run(['ffmpeg', '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except FileNotFoundError:
+        return False
+
+def prompt_install_ffmpeg():
+    """Prompt the user to install ffmpeg."""
+    choice = input("ffmpeg is not installed. Do you want to install it now? (y/n): ").lower()
+    return choice == 'y'
+
+def is_admin():
+    """Check if the script is running with administrator privileges."""
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+def run_as_admin():
+    """Re-launch the script with administrator privileges."""
+    # Build the command line
+    cmd = [sys.executable] + sys.argv
+    params = ' '.join(f'"{x}"' for x in cmd[1:])
+    # Show the UAC prompt
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", cmd[0], params, None, 1)
+    sys.exit()
+
+def download_ffmpeg(url, output_path):
+    """Download the ffmpeg .zip file from the given URL."""
+    with urllib.request.urlopen(url) as response, open(output_path, 'wb') as out_file:
+        shutil.copyfileobj(response, out_file)
+
+def extract_zip(zip_path, extract_to):
+    """Extract the downloaded zip file to the specified directory."""
+    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        zip_ref.extractall(extract_to)
+
+def install_ffmpeg(extract_path, install_path):
+    """Move the extracted ffmpeg files to the installation directory."""
+    extracted_folders = os.listdir(extract_path)
+    # Find the folder that starts with 'ffmpeg'
+    for folder_name in extracted_folders:
+        if folder_name.lower().startswith('ffmpeg'):
+            extracted_folder = os.path.join(extract_path, folder_name)
+            break
+    else:
+        raise FileNotFoundError("Extracted ffmpeg folder not found.")
+    if os.path.exists(install_path):
+        shutil.rmtree(install_path)
+    shutil.move(extracted_folder, install_path)
+
+def add_ffmpeg_to_path(ffmpeg_bin_path):
+    """Add the ffmpeg bin directory to the system PATH environment variable."""
+    # Open the registry key
+    reg_key = reg.OpenKey(
+        reg.HKEY_CURRENT_USER,
+        r'Environment',
+        0,
+        reg.KEY_READ | reg.KEY_WRITE
+    )
+    try:
+        # Read the existing PATH value
+        value, regtype = reg.QueryValueEx(reg_key, 'Path')
+    except FileNotFoundError:
+        value = ''
+    if ffmpeg_bin_path.lower() in value.lower():
+        print("ffmpeg path is already in PATH.")
+        reg.CloseKey(reg_key)
+        return
+
+    new_value = value + ';' + ffmpeg_bin_path
+
+    # Set the new PATH value
+    reg.SetValueEx(reg_key, 'Path', 0, reg.REG_EXPAND_SZ, new_value)
+    reg.CloseKey(reg_key)
+
+    # Notify the system about the environment variable change
+    HWND_BROADCAST = 0xFFFF
+    WM_SETTINGCHANGE = 0x1A
+    SMTO_ABORTIFHUNG = 0x0002
+    ctypes.windll.user32.SendMessageTimeoutW(
+        HWND_BROADCAST, WM_SETTINGCHANGE, 0, 'Environment', SMTO_ABORTIFHUNG, 5000, None)
+    print("ffmpeg path added to system PATH. You WILL have to restart the program for this to take affect.")
+
+def check_ffmpeg():
+    if is_ffmpeg_installed():
+        print("ffmpeg is already installed.")
+        return
+
+    if not prompt_install_ffmpeg():
+        print("ffmpeg installation cancelled.")
+        return
+
+    if not is_admin():
+        print("Requesting administrator privileges...")
+        run_as_admin()
+        return
+
+    print("Downloading ffmpeg...")
+    url = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip'
+    user_home = os.path.expanduser('~')
+    output_path = os.path.join(user_home, 'ffmpeg-git-full.zip')
+    try:
+        download_ffmpeg(url, output_path)
+    except Exception as e:
+        print(f"Error downloading ffmpeg: {e}")
+        return
+
+    print("Extracting ffmpeg...")
+    extract_path = os.path.join(user_home, 'ffmpeg_temp')
+    try:
+        extract_zip(output_path, extract_path)
+    except Exception as e:
+        print(f"Error extracting ffmpeg: {e}")
+        return
+
+    print("Installing ffmpeg...")
+    install_path = r'C:\ffmpeg'
+    try:
+        install_ffmpeg(extract_path, install_path)
+    except Exception as e:
+        print(f"Error installing ffmpeg: {e}")
+        return
+
+    print("Adding ffmpeg to system PATH...")
+    ffmpeg_bin_path = os.path.join(install_path, 'bin')
+    try:
+        add_ffmpeg_to_path(ffmpeg_bin_path)
+    except Exception as e:
+        print(f"Error adding ffmpeg to PATH: {e}")
+        return
+
+    print("Cleaning up temporary files...")
+    try:
+        os.remove(output_path)
+        shutil.rmtree(extract_path)
+    except Exception as e:
+        print(f"Error cleaning up temporary files: {e}")
+        return
+
+    print("ffmpeg installation completed successfully.")
 
 def parse_time(time_str):
     parts = time_str.strip().split(':')
@@ -153,6 +309,8 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
         ydl.download([url])
 
 if __name__ == '__main__':
+    check_ffmpeg()
+
     url = input("Enter the YouTube video URL: ")
     destination_folder = input("Enter the destination folder: ")
 
