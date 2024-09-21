@@ -169,7 +169,7 @@ def parse_time(time_str):
     else:
         raise ValueError("Invalid time format. Use hh:mm:ss, mm:ss, or ss.")
 
-def download_video(url, destination_folder, time_range, download_thumbnail, force8K, force4K, force2K):
+def download_video(url, destination_folder, time_range, download_thumbnail, force8K, force4K, force2K, lowPerformance):
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
         'outtmpl': os.path.join(destination_folder, '%(title)s.%(ext)s'),
@@ -182,10 +182,86 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
     if time_range:
         start_time, end_time = time_range.lstrip('*').split('-')
 
-        if force8K:
+        if lowPerformance != True:
+            if force8K:
+                ydl_opts['postprocessor_args'] = [
+                    '-ss', start_time,
+                    '-to', end_time,
+                    '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
+                    '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
+                    '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
+                    '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
+                    '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
+                    '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
+                    '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
+                    '-rc-lookahead', '32',  # Enhance future frame prediction
+                    '-spatial-aq', '1',  # Adaptive quantization to preserve details
+                    '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
+                    '-vf', 'scale=7680:4320,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
+                ]
+            elif force4K:
+                ydl_opts['postprocessor_args'] = [
+                    '-ss', start_time,
+                    '-to', end_time,
+                    '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
+                    '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
+                    '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
+                    '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
+                    '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
+                    '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
+                    '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
+                    '-rc-lookahead', '32',  # Enhance future frame prediction
+                    '-spatial-aq', '1',  # Adaptive quantization to preserve details
+                    '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
+                    '-vf', 'scale=3840:2160,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
+                ]
+            elif force2K:
+                ydl_opts['postprocessor_args'] = [
+                    '-ss', start_time,
+                    '-to', end_time,
+                    '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
+                    '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
+                    '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
+                    '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
+                    '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
+                    '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
+                    '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
+                    '-rc-lookahead', '32',  # Enhance future frame prediction
+                    '-spatial-aq', '1',  # Adaptive quantization to preserve details
+                    '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
+                    '-vf', 'scale=1920:1080,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
+                ]
+            else:
+                ydl_opts['postprocessor_args'] = [
+                    '-ss', start_time,
+                    '-to', end_time,
+                    '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
+                    '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
+                    '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
+                    '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
+                    '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
+                    '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
+                    '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
+                    '-rc-lookahead', '32',  # Enhance future frame prediction
+                    '-spatial-aq', '1',  # Adaptive quantization to preserve details
+                    '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
+                    '-vf', 'unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
+                ]
+        else:
             ydl_opts['postprocessor_args'] = [
                 '-ss', start_time,
                 '-to', end_time,
+                '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
+                '-preset', 'p5',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
+                '-cq', '22',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
+                '-c:a', 'AAC',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
+                '-profile:v', 'main',   # Set H.264 profile to main for compatibility with most devices
+                '-vf', 'unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
+            ]
+    else:
+        if lowPerformance != True:
+            if force8K:
+                ydl_opts['postprocessor_args'] = [
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
@@ -197,11 +273,9 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-spatial-aq', '1',  # Adaptive quantization to preserve details
                 '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
                 '-vf', 'scale=7680:4320,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
-            ]
-        elif force4K:
-            ydl_opts['postprocessor_args'] = [
-                '-ss', start_time,
-                '-to', end_time,
+                ]
+            elif force4K:
+                ydl_opts['postprocessor_args'] = [
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
@@ -213,11 +287,9 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-spatial-aq', '1',  # Adaptive quantization to preserve details
                 '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
                 '-vf', 'scale=3840:2160,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
-            ]
-        elif force2K:
-            ydl_opts['postprocessor_args'] = [
-                '-ss', start_time,
-                '-to', end_time,
+                ]
+            elif force2K:
+                ydl_opts['postprocessor_args'] = [
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
@@ -229,78 +301,28 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-spatial-aq', '1',  # Adaptive quantization to preserve details
                 '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
                 '-vf', 'scale=1920:1080,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
-            ]
-        else:
-            ydl_opts['postprocessor_args'] = [
-                '-ss', start_time,
-                '-to', end_time,
-                '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
-                '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
-                '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-                '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
-                '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
-                '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
-                '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
-                '-rc-lookahead', '32',  # Enhance future frame prediction
-                '-spatial-aq', '1',  # Adaptive quantization to preserve details
-                '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
-                '-vf', 'unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
-            ]
-    else:
-        if force8K:
-            ydl_opts['postprocessor_args'] = [
-            '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
-            '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
-            '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-            '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
-            '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
-            '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
-            '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
-            '-rc-lookahead', '32',  # Enhance future frame prediction
-            '-spatial-aq', '1',  # Adaptive quantization to preserve details
-            '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
-            '-vf', 'scale=7680:4320,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
-            ]
-        elif force4K:
-            ydl_opts['postprocessor_args'] = [
-            '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
-            '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
-            '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-            '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
-            '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
-            '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
-            '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
-            '-rc-lookahead', '32',  # Enhance future frame prediction
-            '-spatial-aq', '1',  # Adaptive quantization to preserve details
-            '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
-            '-vf', 'scale=3840:2160,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
-            ]
-        elif force2K:
-            ydl_opts['postprocessor_args'] = [
-            '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
-            '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
-            '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-            '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
-            '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
-            '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
-            '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
-            '-rc-lookahead', '32',  # Enhance future frame prediction
-            '-spatial-aq', '1',  # Adaptive quantization to preserve details
-            '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
-            '-vf', 'scale=1920:1080,unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
-            ]
+                ]
+            else:
+                ydl_opts['postprocessor_args'] = [
+                    '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
+                    '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
+                    '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
+                    '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
+                    '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
+                    '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
+                    '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
+                    '-rc-lookahead', '32',  # Enhance future frame prediction
+                    '-spatial-aq', '1',  # Adaptive quantization to preserve details
+                    '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
+                    '-vf', 'unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
+                ]
         else:
             ydl_opts['postprocessor_args'] = [
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
-                '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
-                '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-                '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
+                '-preset', 'p5',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
+                '-cq', '22',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
                 '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
-                '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
-                '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
-                '-rc-lookahead', '32',  # Enhance future frame prediction
-                '-spatial-aq', '1',  # Adaptive quantization to preserve details
-                '-temporal-aq', '1',  # Temporal adaptive quantization for better motion handling
+                '-profile:v', 'main',   # Set H.264 profile to main for compatibility with most devices
                 '-vf', 'unsharp=5:5:0.8:3:3:0.4',  # sharpen for better quality
             ]
     
@@ -320,7 +342,10 @@ if __name__ == '__main__':
     time_input = input("Enter the time range to download (e.g., '6:01-6:50' or '20:47-23:03'), or press Enter to download the whole video: ")
     thumbnail = input("Would you like to download the thumbnail? (y/n): ")
 
-    forceResolution = input("Would you like to force the video to be in a high resolution? (8K/4K/2K or press enter to not change it from the original): ")
+    low_performance = input("If you have a weak computer I highly recommend saying \"y\" to this. (y/n): ")
+
+    if low_performance.lower() != 'y':
+        forceResolution = input("Would you like to force the video to be in a high resolution? (8K/4K/2K or press enter to not change it from the original): ")
     
     time_range = None
     if time_input:
@@ -361,4 +386,8 @@ if __name__ == '__main__':
         else:
             twoK = False
     
-    download_video(url, destination_folder, time_range, download_thumbnail, eightK, fourK, twoK)
+    lowPerformance = False
+    if low_performance.lower() == 'y':
+       lowPerformance = True
+    
+    download_video(url, destination_folder, time_range, download_thumbnail, eightK, fourK, twoK, lowPerformance)
