@@ -33,7 +33,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-                '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+                '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
                 '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
                 '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
                 '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
@@ -49,7 +49,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-                '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+                '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
                 '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
                 '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
                 '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
@@ -65,7 +65,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-                '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+                '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
                 '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
                 '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
                 '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
@@ -81,7 +81,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-                '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+                '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
                 '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
                 '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
                 '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
@@ -96,7 +96,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
             '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
             '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
             '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-            '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+            '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
             '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
             '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
             '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
@@ -110,7 +110,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
             '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
             '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
             '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-            '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+            '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
             '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
             '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
             '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
@@ -124,7 +124,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
             '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
             '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
             '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-            '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+            '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
             '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
             '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
             '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
@@ -138,7 +138,7 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
                 '-c:v', 'hevc_nvenc',   # Use NVIDIA NVENC encoder
                 '-preset', 'p7',        # NVENC presets from p1 (fastest, lower quality) to p7 (slowest, better quality), set to p5 or p4 for good quality and speed
                 '-cq', '18',            # Set constant quality level (lower is better quality, set to around 18-24 and 0 is lowest)
-                '-pix_fmt', 'yuv420p',  # Use 4:2:0 chroma subsampling for better quality and retaining color
+                '-pix_fmt', 'yuv444p',  # Use 4:4:4 chroma subsampling for better quality and retaining color
                 '-c:a', 'flac',         # Use FLAC audio codec for lossless audio, AAC for faster encoding
                 '-profile:v', 'main10',   # Set H.264 profile to main for compatibility with most devices
                 '-colorspace', 'bt2020nc',  # Use BT.2020 color space for better color representation
