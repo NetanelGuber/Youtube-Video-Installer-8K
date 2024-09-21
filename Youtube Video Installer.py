@@ -180,7 +180,7 @@ if __name__ == '__main__':
         download_thumbnail = True
 
     eightK = False
-    if forceResolution.lower() == 'y':
+    if forceResolution.lower() == '8k':
         confirmation = input("Forcing 8K may cause visual issues, high file sizes and an extremely long wait time, are you sure you want to force 8K resolution? (y/n): ")
         if confirmation.lower() == 'y':
             eightK = True
@@ -188,7 +188,7 @@ if __name__ == '__main__':
             eightK = False
     
     fourK = False
-    if forceResolution.lower() == 'y':
+    if forceResolution.lower() == '4k':
         confirmation = input("Forcing 4K may cause visual issues, big file sizes and a long wait time, are you sure you want to force 4K resolution? (y/n): ")
         if confirmation.lower() == 'y':
             fourK = True
@@ -196,7 +196,7 @@ if __name__ == '__main__':
             fourK = False
     
     twoK = False   
-    if forceResolution.lower() == 'y':
+    if forceResolution.lower() == '2k':
         confirmation = input("Forcing 2K may cause visual issues and a longer than usual wait time, are you sure you want to force 2K resolution? (y/n): ")
         if confirmation.lower() == 'y':
             twoK = True
