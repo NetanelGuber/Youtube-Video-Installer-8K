@@ -6,12 +6,9 @@ import urllib.request
 import shutil
 import zipfile
 import winreg as reg
-
-try:
-    import yt_dlp
-except ImportError:
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'yt-dlp'])
-    import yt_dlp
+import re
+import tempfile
+import ssl
 
 def is_ffmpeg_installed():
     """Check if ffmpeg is installed by trying to run 'ffmpeg -version'."""
@@ -44,7 +41,8 @@ def run_as_admin():
 
 def download_ffmpeg(url, output_path):
     """Download the ffmpeg .zip file from the given URL."""
-    with urllib.request.urlopen(url) as response, open(output_path, 'wb') as out_file:
+    context = ssl._create_unverified_context()
+    with urllib.request.urlopen(url, context=context) as response, open(output_path, 'wb') as out_file:
         shutil.copyfileobj(response, out_file)
 
 def extract_zip(zip_path, extract_to):
@@ -168,6 +166,77 @@ def parse_time(time_str):
         return f"{parts[0]:02d}:{parts[1]:02d}:{parts[2]:02d}"
     else:
         raise ValueError("Invalid time format. Use hh:mm:ss, mm:ss, or ss.")
+
+def check_python_installed():
+    python_path = shutil.which('python')
+    return python_path is not None
+
+def get_latest_python_download_url():
+    print("Retrieving the latest Python version...")
+    url = 'http://www.python.org/ftp/python/'
+    context = ssl._create_unverified_context()
+    with urllib.request.urlopen(url, context=context) as response:
+        html = response.read().decode('utf-8')
+        versions = re.findall(r'href="(\d+\.\d+\.\d+)/"', html)
+        latest_version = sorted(versions, key=lambda s: list(map(int, s.split('.'))), reverse=True)[0]
+        download_url = f'http://www.python.org/ftp/python/3.12.6/python-3.12.6-amd64.exe'
+        print(f"Latest Python version is {latest_version}")
+        return download_url
+
+def download_python_installer(download_url, save_path):
+    print("Downloading Python installer...")
+    urllib.request.urlretrieve(download_url, save_path)
+
+def install_python(installer_path):
+    print("Installing Python...")
+    subprocess.call([installer_path, '/quiet', 'InstallAllUsers=1', 'PrependPath=1'], shell=True)
+
+def update_path_env():
+    print("Updating PATH environment variable...")
+    # Refresh environment variables
+    import ctypes
+    SendMessageTimeout = ctypes.windll.user32.SendMessageTimeoutW
+    HWND_BROADCAST = 0xFFFF
+    WM_SETTINGCHANGE = 0x001A
+    SMTO_ABORTIFHUNG = 0x0002
+    result = ctypes.c_long()
+    SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0, 'Environment', SMTO_ABORTIFHUNG, 5000, ctypes.byref(result))
+
+def check_python():
+    if check_python_installed():
+        print("Python is already installed.")
+    else:
+        confirm = input("Python is not installed. Would you like to install it? (y/n): ")
+        if confirm.lower() == 'y':
+            if not is_admin():
+                print("Requesting administrative privileges...")
+                # Re-run the program with admin rights
+                ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, ' '.join(sys.argv), None, 1)
+                sys.exit()
+            else:
+                download_url = get_latest_python_download_url()
+                installer_path = os.path.join(tempfile.gettempdir(), 'python_installer.exe')
+                download_python_installer(download_url, installer_path)
+                install_python(installer_path)
+                update_path_env()
+                # Verify installation
+                if check_python_installed():
+                    print("Python has been successfully installed and added to PATH.")
+                else:
+                    print("Python installation failed or PATH not updated.")
+                    print("You may need to restart your computer or add Python to your PATH manually.")
+        else:
+            print("Python installation cancelled.")
+            sys.exit()
+
+    try:
+        subprocess.check_call(['pip', '--version'])
+    except FileNotFoundError:
+        print("pip not found. Installing pip...")
+        subprocess.check_call([sys.executable, '-m', 'ensurepip', '--upgrade'])
+
+    # Your main application logic here
+    print("Your script is now running with Python installed.")
 
 def download_video(url, destination_folder, time_range, download_thumbnail, force8K, force4K, force2K, lowPerformance):
     ydl_opts = {
@@ -332,6 +401,13 @@ def download_video(url, destination_folder, time_range, download_thumbnail, forc
 
 if __name__ == '__main__':
     check_ffmpeg()
+    check_python()
+
+    try:
+        import yt_dlp
+    except ImportError:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'yt-dlp'])
+        import yt_dlp
 
     url = input("Enter the YouTube video URL: ")
     destination_folder = input("Enter the destination folder: ")
